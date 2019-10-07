@@ -1,0 +1,320 @@
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <canvas id="canvas" width="400" height="300" style="border:3px solid black;">
+            This text is displayed if your browser does not support HTML5 Canvas.
+        </canvas>
+        
+        <audio id="bgAudio" autoplay loop src="Bg.mp3"></audio>
+        <audio id="hitAudio" src="Hit.mp3"></audio>
+        <audio id="winAudio" src="Win.mp3"></audio>
+        <audio id="bounceAudio" src="Bounce.mp3"></audio>
+        <audio id="loseAudio" src="Lose.mp3"></audio>
+        
+        <script type="text/javascript">
+            //--------------------------Variables--------------------------
+            var canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext("2d");
+            
+            //Audio
+            var bg = document.getElementById("bgAudio");
+            var hit = document.getElementById("hitAudio");
+            var win = document.getElementById("winAudio");
+            var bounce = document.getElementById("bounceAudio");
+            var lose = document.getElementById("loseAudio");
+            
+            lose.volume = 0.3;
+            bounce.volume = 0.2;
+            win.volume = 0.3;
+            hit.volume = 0.2;
+            bg.volume = 0.1;
+            
+            //Screen Variables
+            var StartScreen = true;
+            var GamePlaying = false;
+            var GameWin = false;
+            var GameOver = false;
+            
+            //Score Variable
+            var score = 0;
+            
+            //Ball Variables
+            var x = canvas.width/2;
+            var y = canvas.height - (Math.floor((Math.random() * 40) + 35));
+            var dx = 2;
+            var dy = -2;
+            var ballRadius = 5;
+            
+            //Paddle Variables
+            var p_Height = 7;
+            var p_Width = 80;
+            var paddleX = (canvas.width-p_Width)/2;
+            
+            //Movement Variables
+            var r_Pressed = false;
+            var l_Pressed = false;
+            
+            //Blocks Variables
+            var blockRows = 4;
+            var blockColumns = 13;
+            var blockWidth = 25;
+            var blockHeight = 10;
+            var blockPadding = 5;
+            var blockOffsetTop = 15;
+            var blockOffsetLeft = 8;
+            
+            var blocks = [];
+            for(i=0; i < blockColumns; i++){
+                blocks[i] = [];
+                for(r=0; r < blockRows; r++){
+                    blocks[i][r] = {x: 0, y: 0, status: 1};
+                }
+            }
+            
+            //--------------------------Drawing Blocks--------------------------
+            function drawBlocks(){
+                for(i=0; i < blockColumns; i++){
+                    for(r=0; r < blockRows; r++){
+                        if(blocks[i][r].status == 1){
+                            var blockX = (i*(blockWidth + blockPadding)) + blockOffsetLeft;
+                            var blockY = (r*(blockHeight + blockPadding)) + blockOffsetTop;
+                            blocks[i][r].x = blockX;
+                            blocks[i][r].y = blockY;
+                            ctx.beginPath();
+                            ctx.rect(blockX, blockY, blockWidth, blockHeight);
+                            ctx.fillStyle = "gray";
+                            ctx.fill();
+                            ctx.closePath();
+                        }
+                    }
+                }
+            }
+            
+            //--------------------------Blocks Collision--------------------------
+            function blocksCollision(){
+                for(i=0; i < blockColumns; i++){
+                    for(r=0; r < blockRows; r++){
+                        var b = blocks[i][r];
+                        if(b.status == 1){
+                            if(x + ballRadius > b.x && x - ballRadius < b.x + blockWidth && y + ballRadius > b.y && y - ballRadius < b.y + blockHeight){
+                                if(y + ballRadius > b.y && y + ballRadius < b.y + 3){
+                                    dy = -dy;
+                                }
+                                else if(y - ballRadius < b.y + blockHeight && y - ballRadius > b.y + blockHeight - 3){
+                                    dy = -dy;
+                                }
+                                if(x + ballRadius > b.x && x + ballRadius < b.x + 3){
+                                    dx = -dx;
+                                }
+                                else if(x - ballRadius < b.x + blockWidth && x - ballRadius > b.x + blockWidth - 3){
+                                    dx = -dx;
+                                }
+                                b.status = 0;
+                                score = score + 5;
+                                
+                                //Audio On Collision
+                                hit.play();
+                            }
+                        }
+                    }
+                }
+            }
+            
+            //--------------------------User Input--------------------------
+            document.addEventListener("keydown", keyDownHandler, false);
+            document.addEventListener("keyup", keyUpHandler, false);
+            
+            function keyDownHandler(e){
+                if(e.keyCode == 39){
+                    r_Pressed = true;
+                }
+                if(e.keyCode == 37){
+                    l_Pressed = true;
+                }
+            }
+            
+            function keyUpHandler(e){
+                if(e.keyCode == 39){
+                    r_Pressed = false;
+                }
+                if(e.keyCode == 37){
+                    l_Pressed = false;
+                }
+                else if(e.keyCode == 13){
+                    GamePlaying = true;
+                }
+            }
+            
+            //--------------------------Start Screen--------------------------
+            function LoadGame(){
+                if(StartScreen){
+                    ctx.fillStyle = "gray";
+                    ctx.fillRect(0, 0, 400, 300);
+                    
+                    ctx.font = '20px Verdana';
+                    ctx.fillStyle = "black";
+                    ctx.fillText("Breaking:", 50, 50);
+                    
+                    ctx.font = '18px Verdana';
+                    ctx.fillText("Colour Fight", 50, 70);
+                    
+                    ctx.font = '15px Verdana';
+                    ctx.fillText("Rules of play:", 70, 120);
+                    ctx.fillText("Press ENTER to start.", 70, 140);
+                    ctx.fillText("To move the paddle", 70, 160);
+                    ctx.fillText("use LEFT and RIGHT arrow keys.", 70, 180);
+                }
+            }
+            
+            //--------------------------Drawing Ball--------------------------
+            function ball(){
+                ctx.beginPath();
+                ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+                var gradient = ctx.createLinearGradient(0, 120, 0, 170);
+                gradient.addColorStop(0, "gray");
+                gradient.addColorStop(1, "white");
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.closePath();
+            }
+            
+            //--------------------------Drawing Paddle--------------------------
+            function paddle(){
+                ctx.beginPath();
+                ctx.rect(paddleX, canvas.height - p_Height, p_Width, p_Height);
+                ctx.fillStyle = "white";
+                ctx.fill();
+                ctx.closePath();
+            }
+            
+            //--------------------------Displaying Game Screen--------------------------
+            function draw() {
+                if(GamePlaying){
+                    //Clearing The Canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    //Background Colour
+                    var gradient = ctx.createLinearGradient(0, 120, 0, 170);
+                    gradient.addColorStop(0, "white");
+                    gradient.addColorStop(1, "gray");
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    //Background Colour Change And Winning Message
+                    if(score == 260){
+                        GamePlaying = false;
+                        GameWin = true;
+                    }
+                    
+                    //Calling All Functions
+                    drawBlocks();
+                    paddle();
+                    blocksCollision();
+                    ball();
+                    
+                    //Displaying The Score
+                    ctx.font = '18px Verdana';
+                    ctx.fillStyle = "black";
+                    ctx.fillText("Score:", 170, 150);
+                    ctx.fillText(score, 170, 170);
+                    
+                    //Wall Collision With The Ball
+                    if(x + ballRadius > canvas.width || x - ballRadius < 0){
+                        dx = -dx;
+                    }
+                    
+                    //The Ball Hits the Top
+                    if(y - ballRadius < 0){
+                        dy = -dy;
+                    }
+                    
+                    //The Ball Hits The Bottom
+                    if(y + ballRadius > canvas.height - p_Height){
+                        //The Ball Hits The Paddle
+                        if(x > paddleX && x < paddleX + p_Width){
+                            dy = -dy;
+                            bounce.play();
+                        }
+                        //The Ball Hits The Base
+                        else{
+                            GamePlaying = false;
+                            GameOver = true;
+                        }
+                    }
+                    
+                    //Paddle Movement And Wall Collision
+                    if(r_Pressed && paddleX < canvas.width - p_Width){
+                        paddleX += 5;
+                    }
+                    else if(l_Pressed && paddleX > 0){
+                        paddleX -= 5;
+                    }
+                    
+                    //Ball Movement
+                    x += dx;
+                    y += dy;
+                    
+                    //Making The Game More Difficult
+                    if(score == 180){
+                        p_Width = 50;
+                    }
+                }
+                
+                //Game Win Screen
+                if(GameWin){
+                    ctx.fillStyle = "gray";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                    ctx.font = '18px Verdana';
+                    ctx.fillStyle = "black";
+                    ctx.fillText("You managed to beat the dark.", 50, 100);
+                    ctx.fillText("Well Done!", 70, 120);
+                    
+                    //Final Score
+                    ctx.fillText("Score:", 170, 150);
+                    ctx.fillText(score, 170, 170);
+                        
+                    //Winning Audio
+                    bg.pause();
+                    win.play();
+                        
+                    //Reload The Page After A Short Delay
+                    setTimeout(function(){GameWin = false;}, 4000);
+                    document.location.reload();
+                }
+                
+                //Game Over Screen
+                if(GameOver){
+                    ctx.fillStyle = "gray";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                    ctx.font = '18px Verdana';
+                    ctx.fillStyle = "black";
+                    ctx.fillText("The darkness consumed you.", 50, 100);
+                    ctx.fillText("Game Over", 70, 120);
+                    
+                    //Final Score
+                    ctx.fillText("Score:", 170, 150);
+                    ctx.fillText(score, 170, 170);
+                        
+                    //Winning Audio
+                    bg.pause();
+                    lose.play();
+                    
+                    //Reload The Page After A Short Delay
+                    setTimeout(function(){GameOver = false;}, 4000);
+                    document.location.reload();
+                }
+            }
+            
+            //Set Framerates
+            setInterval(draw, 10);
+            //Load Start Screen
+            LoadGame();
+        </script>
+    </body>
+</html>
