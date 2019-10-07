@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <title>Michal Pekacki</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="css.css">
+
+        <script src="jquery-1.11.3.min.js"></script>
+        
+        <script>
+        $(document).ready(function(){
+            $("#hide").click(function(){
+                $("table").hide();
+            });
+            $("#show").click(function(){
+                $("table").show();
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <h1><a href="index.html">Michal Pekacki's website</a></h1>
+        </div>
+        
+        <div id="nav">
+            <ul>
+                <li class="active"><a href="index.html">Home</a></li>
+                <li><a href="information.html">Information</a></li>
+                <li><a href="games.html">Top Games</a></li>
+                <li><a href="career.html">Career</a></li>
+            </ul>
+        </div>
+        
+        <div id="tab">
+            <table>
+                <tr>
+                    <td><h1>Skills</h1></td>
+                    <td><h1>Interests</h1></td>
+                </tr>
+                <tr>
+                    <td>Teamwork</td>
+                    <td>Football</td>
+                </tr>
+                <tr>
+                    <td>Organised</td>
+                    <td>Computer Games</td>
+                </tr>
+                <tr>
+                    <td>Mathematics</td>
+                    <td>Science</td>
+                </tr>
+                <tr>
+                    <td>Quick Learner</td>
+                    <td>Animals</td>
+                </tr>
+            </table>
+            
+            <button id="hide">Hide</button>
+            <button id="show">Show</button><br/>
+            
+            <button onclick="myFunction()">Click to change background change</button><br/>
+            
+            <audio controls autoplay>
+                <source src="rain.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+
+        <script>
+        function myFunction() {
+            document.body.style.backgroundImage = "url('background2.jpg')";
+        }
+        </script>
+    </body>
+</html>
